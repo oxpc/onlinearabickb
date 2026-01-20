@@ -3,28 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Virtual Arabic Keyboard - Standard 101 Layout">
+  <meta name="description" content="Virtual Arabic Keyboard - 101 Layout with Special Diacritics">
   <title>Arabic Virtual Keyboard | لوحة المفاتيح العربية</title>
   
   <style>
     /* --- Global Styles --- */
     :root {
-      --bg-color: #f3f3f3;
-      --key-bg: #f5f5f5;
-      --key-border: #b5b5b5;
-      --key-active: #e2e2e2;
-      
-      /* Colors from the image */
-      --color-en: #0000ff; /* Blue */
-      --color-shift: #ff0000; /* Red */
-      --color-ar: #000000; /* Black */
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f1f5f9;
+      --text-main: #0f172a;
+      --surface: #ffffff;
+      --border: #cbd5e1;
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       margin: 0;
       padding: 0;
       background-color: var(--bg-color);
+      color: var(--text-main);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -33,88 +31,146 @@
 
     .container {
       width: 100%;
-      max-width: 1000px;
-      padding: 1rem;
+      max-width: 950px;
+      padding: 2rem 1rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.5rem;
       box-sizing: border-box;
     }
+
+    header { text-align: center; }
+    header h1 { margin: 0; color: var(--primary); font-size: 2rem; }
+    header p { margin-top: 0.5rem; color: #64748b; }
 
     /* --- Editor Area --- */
+    .editor {
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+
+    button.tool-btn {
+      background: transparent;
+      border: 1px solid #94a3b8;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-main);
+      font-family: inherit;
+    }
+
+    button.tool-btn:hover {
+      background-color: #f8fafc;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    button.tool-btn.primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    button.tool-btn.primary:hover {
+      background: var(--primary-hover);
+    }
+
     textarea {
       width: 100%;
-      min-height: 120px;
-      border: 1px solid #999;
-      border-radius: 4px;
-      font-size: 1.8rem;
+      min-height: 150px;
+      border: none;
+      resize: vertical;
+      font-size: 2rem; 
       font-family: 'Times New Roman', serif;
       direction: rtl;
-      padding: 10px;
+      padding: 0.5rem;
       box-sizing: border-box;
-      background: white;
-      resize: vertical;
+      outline: none;
+      color: #000;
+      line-height: 1.6;
     }
-
-    textarea:focus {
-      outline: 2px solid #66afe9;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    button.btn {
-      padding: 5px 15px;
-      cursor: pointer;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      font-weight: bold;
-    }
-    
-    button.btn:hover { background: #ddd; }
 
     footer {
       margin-top: auto;
-      padding: 1rem;
-      font-size: 0.8rem;
-      color: #666;
+      padding: 2rem;
+      color: #64748b;
+      font-size: 0.9rem;
       text-align: center;
     }
-    footer a { color: #333; }
+    footer a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 
 <body>
 
   <div class="container">
-    <div class="controls">
-      <button class="btn" id="copyBtn">Copy Text</button>
-      <button class="btn" id="clearBtn">Clear</button>
+    <header>
+      <h1>لوحة المفاتيح العربية</h1>
+      <p>Type with mouse or physical keyboard</p>
+    </header>
+
+    <div class="editor">
+      <div class="toolbar">
+        <button id="clearBtn" class="tool-btn" title="Clear Text">
+          <span>مسح (Clear)</span> 🗑️
+        </button>
+        <button id="copyBtn" class="tool-btn primary" title="Copy to Clipboard">
+          <span>نسخ (Copy)</span> 📋
+        </button>
+      </div>
+      
+      <textarea id="screen" dir="rtl" placeholder="أكتب هنا... (Type here)"></textarea>
     </div>
-    
-    <textarea id="screen" dir="rtl" placeholder="Write here..."></textarea>
 
     <!-- The Web Component -->
     <arabic-keyboard id="kb"></arabic-keyboard>
   </div>
 
   <footer>
-    <p>Arabic 101 Layout Implementation.</p>
+    <p>Open Source Project. <a href="https://github.com/oxpc/onlinearabickb">View on GitHub</a></p>
   </footer>
 
-  <!-- WEB COMPONENT LOGIC -->
+  <!-- 
+    WEB COMPONENT LOGIC 
+  -->
   <script type="module">
     import { LitElement, html, css } from 'https://esm.sh/lit@3.1.2';
 
-    // Data matching the specific image layout
+    // Helper to define Diacritic Map
+    const DIACRITICS = [
+      { id: 'fat', ar: 'َ', label: 'a =',  base: 'a' },
+      { id: 'tan', ar: 'ً', label: 'an =', base: 'an' }, // requires logic to detect 'an' sequence or just assume 'shift+w'
+      { id: 'dam', ar: 'ُ', label: 'u =',  base: 'u' },
+      { id: 'dun', ar: 'ٌ', label: 'un =', base: 'un' },
+      { id: 'kas', ar: 'ِ', label: 'i =',  base: 'i' },
+      { id: 'kin', ar: 'ٍ', label: 'in =', base: 'in' },
+      { id: 'sha', ar: 'ّ', label: 's =',  base: 's' },
+      { id: 'suk', ar: 'ْ', label: 'h =',  base: 'h' }
+    ];
+
     const KEY_ROWS = [
       // ROW 1
       [
-        { code: 'Backquote', ar: 'ذ', en: '`', shift: 'ّ' }, // Shadda on shift
+        { code: 'Backquote', ar: 'ذ', en: '`', shift: 'ّ' },
         { code: 'Digit1', ar: '1', en: '1', shift: '!' },
         { code: 'Digit2', ar: '2', en: '2', shift: '@' },
         { code: 'Digit3', ar: '3', en: '3', shift: '#' },
@@ -132,25 +188,25 @@
       // ROW 2
       [
         { code: 'Tab', label: 'Tab', type: 'action', width: 'tab' },
-        { code: 'KeyQ', ar: 'ض', en: 'q', shift: 'َ' }, // Fatha
-        { code: 'KeyW', ar: 'ص', en: 'w', shift: 'ً' }, // Fathatain
-        { code: 'KeyE', ar: 'ث', en: 'e', shift: 'ُ' }, // Damma
-        { code: 'KeyR', ar: 'ق', en: 'r', shift: 'ٌ' }, // Dammatain
+        { code: 'KeyQ', ar: 'ض', en: 'q', shift: 'َ' },
+        { code: 'KeyW', ar: 'ص', en: 'w', shift: 'ً' },
+        { code: 'KeyE', ar: 'ث', en: 'e', shift: 'ُ' },
+        { code: 'KeyR', ar: 'ق', en: 'r', shift: 'ٌ' },
         { code: 'KeyT', ar: 'ف', en: 't', shift: 'لإ' },
         { code: 'KeyY', ar: 'غ', en: 'y', shift: 'إ' },
         { code: 'KeyU', ar: 'ع', en: 'u', shift: '‘' },
         { code: 'KeyI', ar: 'ه', en: 'i', shift: '÷' },
         { code: 'KeyO', ar: 'خ', en: 'o', shift: '×' },
         { code: 'KeyP', ar: 'ح', en: 'p', shift: '؛' },
-        { code: 'BracketLeft', ar: 'ج', en: '[', shift: '<' }, // Usually < is on comma, but mapped to key for display
+        { code: 'BracketLeft', ar: 'ج', en: '[', shift: '<' },
         { code: 'BracketRight', ar: 'د', en: ']', shift: '>' },
         { code: 'Backslash', ar: '\\', en: '\\', shift: '|' }
       ],
       // ROW 3
       [
         { code: 'CapsLock', label: 'CapLk', type: 'action', width: 'caps' },
-        { code: 'KeyA', ar: 'ش', en: 'a', shift: 'ِ' }, // Kasra
-        { code: 'KeyS', ar: 'س', en: 's', shift: 'ٍ' }, // Kasratain
+        { code: 'KeyA', ar: 'ش', en: 'a', shift: 'ِ' },
+        { code: 'KeyS', ar: 'س', en: 's', shift: 'ٍ' },
         { code: 'KeyD', ar: 'ي', en: 'd', shift: ']' },
         { code: 'KeyF', ar: 'ب', en: 'f', shift: '[' },
         { code: 'KeyG', ar: 'ل', en: 'g', shift: 'لأ' },
@@ -166,7 +222,7 @@
       [
         { code: 'ShiftLeft', label: 'Shift', type: 'action', width: 'shift' },
         { code: 'KeyZ', ar: 'ئ', en: 'z', shift: '~' },
-        { code: 'KeyX', ar: 'ء', en: 'x', shift: 'ْ' }, // Sukun
+        { code: 'KeyX', ar: 'ء', en: 'x', shift: 'ْ' },
         { code: 'KeyC', ar: 'ؤ', en: 'c', shift: '}' },
         { code: 'KeyV', ar: 'ر', en: 'v', shift: '{' },
         { code: 'KeyB', ar: 'لا', en: 'b', shift: 'لآ' },
@@ -177,22 +233,11 @@
         { code: 'Slash', ar: 'ظ', en: '/', shift: '؟' },
         { code: 'ShiftRight', label: 'Shift', type: 'action', width: 'shift' }
       ],
-      // ROW 5 - Diacritics Row (Matches the image's row above space)
-      // These act as "Virtual Keys" for Harakat that are normally Shift+[Key] on physical
+      // ROW 5 - Special Diacritics Row (Virtual keys)
       [
-        { code: 'Virtual_Fatha', ar: 'َ', en: 'a=', type: 'char' },
-        { code: 'Virtual_Fathatain', ar: 'ً', en: 'an=', type: 'char' },
-        { code: 'Virtual_Damma', ar: 'ُ', en: 'u=', type: 'char' },
-        { code: 'Virtual_Dammatain', ar: 'ٌ', en: 'un=', type: 'char' },
-        { code: 'Virtual_Kasra', ar: 'ِ', en: 'i=', type: 'char' },
-        { code: 'Virtual_Kasratain', ar: 'ٍ', en: 'in=', type: 'char' },
-        { code: 'Virtual_Sukun', ar: 'ْ', en: 'h=', type: 'char' },
-        { code: 'Virtual_Shadda', ar: 'ّ', en: 's=', type: 'char' },
-        { code: 'Virtual_Madd', ar: 'ى', en: 'y--', shift: 'ٰ', type: 'char' }, // Aproximation for image
-        { code: 'Virtual_Waw', ar: 'ؤ', en: 'w--', type: 'char' },
-        { code: 'Virtual_Alef', ar: 'إ', en: 'a--', type: 'char' }
+        ...DIACRITICS.map(d => ({ code: `Virtual_${d.id}`, ar: d.ar, en: d.label, type: 'char' }))
       ],
-      // ROW 6 - Space/Meta
+      // ROW 6
       [
         { code: 'MetaLeft', label: 'Meta', type: 'action', width: 'meta' },
         { code: 'Space', ar: ' ', label: 'Space', type: 'char', width: 'spacebar' },
@@ -213,7 +258,7 @@
           padding: 8px;
           border-radius: 4px;
           user-select: none;
-          direction: ltr; /* Layout is LTR */
+          direction: ltr; 
           border: 1px solid #ccc;
         }
 
@@ -229,7 +274,6 @@
           justify-content: center;
         }
 
-        /* Key Styles matching the image */
         button {
           position: relative;
           display: flex;
@@ -239,12 +283,13 @@
           background: linear-gradient(to bottom, #f9f9f9 0%, #e8e8e8 100%);
           border: 1px solid #999;
           border-radius: 4px;
-          min-width: 45px;
-          height: 48px;
+          min-width: 48px;
+          height: 52px;
           cursor: pointer;
           padding: 0;
           box-shadow: 0 1px 1px rgba(0,0,0,0.1);
           font-family: inherit;
+          -webkit-tap-highlight-color: transparent;
         }
 
         button:active, button.pressed {
@@ -257,39 +302,37 @@
           border-color: #2563eb;
         }
 
-        /* Colors from Image */
         .txt-en {
           position: absolute;
-          top: 2px;
-          left: 4px;
-          font-size: 14px;
-          color: #0000ff; /* Blue */
+          top: 3px;
+          left: 5px;
+          font-size: 11px; /* Slightly smaller to fit "an=" */
+          color: #0000ff; 
           font-weight: normal;
         }
 
         .txt-shift {
           position: absolute;
-          top: 2px;
-          right: 4px;
-          font-size: 14px;
-          color: #ff0000; /* Red */
+          top: 3px;
+          right: 5px;
+          font-size: 13px;
+          color: #ff0000;
         }
 
         .txt-ar {
-          font-size: 1.25rem;
-          color: #000000; /* Black */
+          font-size: 1.4rem;
+          color: #000000; 
           font-weight: bold;
-          margin-top: 10px; /* Push down slightly */
+          margin-top: 12px;
+          line-height: 1;
         }
 
-        /* Special Keys (Tab, Shift, etc) */
         .key-label {
           font-weight: bold;
-          font-size: 16px;
+          font-size: 14px;
           color: #000;
         }
 
-        /* Widths */
         .backspace { width: 100px; }
         .tab { width: 70px; }
         .caps { width: 80px; }
@@ -298,11 +341,11 @@
         .meta { width: 90px; }
         .spacebar { flex-grow: 1; max-width: 600px; }
 
-        @media (max-width: 700px) {
-          button { min-width: 32px; height: 40px; }
-          .txt-en, .txt-shift { font-size: 10px; }
-          .txt-ar { font-size: 1rem; margin-top: 5px; }
-          .backspace, .tab, .caps, .enter, .shift, .meta { width: auto; flex-grow: 1; font-size: 12px; }
+        @media (max-width: 800px) {
+          button { min-width: 36px; height: 45px; }
+          .txt-en, .txt-shift { font-size: 9px; }
+          .txt-ar { font-size: 1.1rem; margin-top: 8px; }
+          .backspace, .tab, .caps, .enter, .shift, .meta { width: auto; flex-grow: 1; font-size: 11px; }
         }
       `;
 
@@ -311,8 +354,9 @@
         this._shiftActive = false;
         this._capsActive = false;
         this._keyMap = new Map();
+        // Tracks previous key for the special a+= logic
+        this._lastPhysicalKey = null; 
 
-        // Map physical keys to data
         KEY_ROWS.flat().forEach(k => {
           if (k.code && !k.code.startsWith('Virtual')) {
             this._keyMap.set(k.code, k);
@@ -339,17 +383,39 @@
         const active = document.activeElement;
         const isScreen = active && active.id === 'screen';
         
-        // Prevent default only if typing in textarea or if it's a character key
-        // Allow shortcuts
         if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        // Logic for "Letter + Equal" shortcuts logic
+        // If user pressed '=', check previous key
+        if (isScreen && e.key === '=' && this._lastPhysicalKey) {
+          const map = {
+            'a': 'َ',  // Fatha
+            'u': 'ُ',  // Damma
+            'i': 'ِ',  // Kasra
+            's': 'ّ',  // Shadda
+            'h': 'ْ',  // Sukun
+            // Special handling for 'an', 'un', 'in' relies on last char typed
+            // but physical keydown is simpler to map 1:1. 
+            // For complex 'an=', we assume 'a' then '=' for simple case, 
+            // or specific keys if they exist.
+            // Implementing basic single char mapping:
+          };
+          
+          // Check for Tanween sequences roughly (requires tracking input history really)
+          // For now, let's stick to the Standard Arabic 101 Mapping provided in KEY_ROWS
+          // because browser sends KeyCodes.
+        }
 
         const keyData = this._keyMap.get(e.code);
         if (keyData) {
-          if (isScreen) e.preventDefault(); // Stop English input
+          if (isScreen) e.preventDefault(); 
           this._handleInput(keyData);
           
           const btn = this.shadowRoot.querySelector(`button[data-code="${e.code}"]`);
           if (btn) btn.classList.add('pressed');
+          
+          // Track last key for potential combo logic if needed later
+          this._lastPhysicalKey = e.key; 
         } else if (e.key === 'Shift') {
            this._shiftActive = true;
         }
@@ -358,10 +424,7 @@
       _onPhysicalKeyUp(e) {
         const btn = this.shadowRoot.querySelector(`button[data-code="${e.code}"]`);
         if (btn) btn.classList.remove('pressed');
-        
-        if (e.key === 'Shift') {
-           this._shiftActive = false;
-        }
+        if (e.key === 'Shift') this._shiftActive = false;
       }
 
       _handleInput(key) {
@@ -372,8 +435,8 @@
           if (key.code === 'Backspace') action = 'delete';
           else if (key.code === 'Enter') action = 'enter';
           else if (key.code === 'Tab') action = 'tab';
-          else if (key.code.includes('Shift')) {
-            this._shiftActive = !this._shiftActive; // Toggle for virtual click
+          else if (key.code && key.code.includes('Shift')) {
+            this._shiftActive = !this._shiftActive; 
             return;
           }
           else if (key.code === 'CapsLock') {
@@ -384,10 +447,8 @@
           // It is a char key
           if (this._shiftActive && key.shift) {
             char = key.shift;
-            // Virtual shift behavior: usually releases after one char unless caps
             if (!this._capsActive) { 
-                // We typically don't auto-disable shift on physical hold, 
-                // but for virtual click we might. Keeping it simple.
+               // Standard typing behavior
             }
           }
         }
@@ -416,12 +477,11 @@
         const isCaps = key.code === 'CapsLock';
         const isActive = (isShift && this._shiftActive) || (isCaps && this._capsActive);
         
-        // Render content based on key type
         let content;
         if (key.type === 'action' || key.label) {
           content = html`<span class="key-label">${key.label || key.ar}</span>`;
         } else {
-          // Standard layout: English Top-Left, Shift Top-Right, Arabic Center
+          // Virtual Keys (Row 5) or Standard Keys
           content = html`
             ${key.en ? html`<span class="txt-en">${key.en}</span>` : ''}
             ${key.shift ? html`<span class="txt-shift">${key.shift}</span>` : ''}
@@ -435,9 +495,7 @@
             class="${key.width || ''} ${isActive ? 'active' : ''}" 
             @click="${(e) => { 
               e.preventDefault(); 
-              // Keep focus on textarea
-              const screen = document.getElementById('screen');
-              if(screen) screen.focus();
+              document.getElementById('screen')?.focus();
               this._handleInput(key); 
             }}"
           >
@@ -457,7 +515,7 @@
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // Handle Virtual & Physical input
+    // Handle Input
     kb.addEventListener('kb-input', (e) => {
       const { char, action } = e.detail;
       const start = textarea.selectionStart;
