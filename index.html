@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Virtual Arabic Keyboard for PC and Mobile">
+  <title>Arabic Virtual Keyboard | لوحة المفاتيح العربية</title>
+  
+  <style>
+    /* --- Global & Application Styles --- */
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --text-main: #1e293b;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      color: var(--primary);
+      font-size: 2rem;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      color: #64748b;
+    }
+
+    /* Editor / Text Area Area */
+    .editor {
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+
+    button.tool-btn {
+      background: transparent;
+      border: 1px solid #cbd5e1;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-main);
+      font-family: inherit;
+    }
+
+    button.tool-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background-color: #eff6ff;
+    }
+
+    button.tool-btn.primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    button.tool-btn.primary:hover {
+      background: var(--primary-hover);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      border: none;
+      resize: vertical;
+      font-size: 1.6rem;
+      font-family: 'Times New Roman', serif;
+      direction: rtl; /* Right to Left for Arabic */
+      padding: 0.5rem;
+      box-sizing: border-box;
+      outline: none;
+      color: #000;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 2rem;
+      color: #64748b;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    footer a { color: var(--primary); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header>
+      <h1>لوحة المفاتيح العربية</h1>
+      <p>Online Virtual Arabic Keyboard</p>
+    </header>
+
+    <div class="editor">
+      <div class="toolbar">
+        <button id="clearBtn" class="tool-btn" title="Clear Text">
+          <span>مسح (Clear)</span> 🗑️
+        </button>
+        <button id="copyBtn" class="tool-btn primary" title="Copy to Clipboard">
+          <span>نسخ (Copy)</span> 📋
+        </button>
+      </div>
+      
+      <textarea id="screen" dir="rtl" placeholder="أكتب هنا... (Type here)"></textarea>
+    </div>
+
+    <!-- The Web Component -->
+    <arabic-keyboard id="kb"></arabic-keyboard>
+  </div>
+
+  <footer>
+    <p>Created by <a href="https://github.com/oxpc">oxpc</a>. View on <a href="https://github.com/oxpc/onlinearabickb">GitHub</a>.</p>
+  </footer>
+
+  <!-- 
+    WEB COMPONENT LOGIC 
+    Using esm.sh CDN to load Lit without a build step 
+  -->
+  <script type="module">
+    import { LitElement, html, css } from 'https://esm.sh/lit@3.1.2';
+
+    // Keyboard Data Map
+    const KEY_ROWS = [
+      [
+        { code: 'Backquote', ar: 'ذ', en: '`', shift: 'ّ' },
+        { code: 'Digit1', ar: '1', en: '1', shift: '!' },
+        { code: 'Digit2', ar: '2', en: '2', shift: '@' },
+        { code: 'Digit3', ar: '3', en: '3', shift: '#' },
+        { code: 'Digit4', ar: '4', en: '4', shift: '$' },
+        { code: 'Digit5', ar: '5', en: '5', shift: '%' },
+        { code: 'Digit6', ar: '6', en: '6', shift: '^' },
+        { code: 'Digit7', ar: '7', en: '7', shift: '&' },
+        { code: 'Digit8', ar: '8', en: '8', shift: '*' },
+        { code: 'Digit9', ar: '9', en: '9', shift: ')' },
+        { code: 'Digit0', ar: '0', en: '0', shift: '(' },
+        { code: 'Minus', ar: '-', en: '-', shift: '_' },
+        { code: 'Equal', ar: '=', en: '=', shift: '+' },
+        { code: 'Backspace', label: '⌫', type: 'action', width: 'wide', action: 'delete' }
+      ],
+      [
+        { code: 'Tab', label: 'Tab', type: 'action', width: 'wide', action: 'tab' },
+        { code: 'KeyQ', ar: 'ض', en: 'q', shift: 'َ' },
+        { code: 'KeyW', ar: 'ص', en: 'w', shift: 'ً' },
+        { code: 'KeyE', ar: 'ث', en: 'e', shift: 'ُ' },
+        { code: 'KeyR', ar: 'ق', en: 'r', shift: 'ٌ' },
+        { code: 'KeyT', ar: 'ف', en: 't', shift: 'لإ' },
+        { code: 'KeyY', ar: 'غ', en: 'y', shift: 'إ' },
+        { code: 'KeyU', ar: 'ع', en: 'u', shift: '‘' },
+        { code: 'KeyI', ar: 'ه', en: 'i', shift: '÷' },
+        { code: 'KeyO', ar: 'خ', en: 'o', shift: '×' },
+        { code: 'KeyP', ar: 'ح', en: 'p', shift: '؛' },
+        { code: 'BracketLeft', ar: 'ج', en: '[', shift: '<' },
+        { code: 'BracketRight', ar: 'د', en: ']', shift: '>' },
+        { code: 'Backslash', ar: '\\', en: '\\', shift: '|' }
+      ],
+      [
+        { code: 'CapsLock', label: 'Caps', type: 'action', width: 'wide', action: 'caps' },
+        { code: 'KeyA', ar: 'ش', en: 'a', shift: 'ِ' },
+        { code: 'KeyS', ar: 'س', en: 's', shift: 'ٍ' },
+        { code: 'KeyD', ar: 'ي', en: 'd', shift: ']' },
+        { code: 'KeyF', ar: 'ب', en: 'f', shift: '[' },
+        { code: 'KeyG', ar: 'ل', en: 'g', shift: 'لأ' },
+        { code: 'KeyH', ar: 'ا', en: 'h', shift: 'أ' },
+        { code: 'KeyJ', ar: 'ت', en: 'j', shift: 'ـ' },
+        { code: 'KeyK', ar: 'ن', en: 'k', shift: '،' },
+        { code: 'KeyL', ar: 'م', en: 'l', shift: '/' },
+        { code: 'Semicolon', ar: 'ك', en: ';', shift: ':' },
+        { code: 'Quote', ar: 'ط', en: "'", shift: '"' },
+        { code: 'Enter', label: 'Enter ↵', type: 'action', width: 'extra-wide', action: 'enter' }
+      ],
+      [
+        { code: 'ShiftLeft', label: 'Shift ⇧', type: 'action', width: 'extra-wide', action: 'shift' },
+        { code: 'KeyZ', ar: 'ئ', en: 'z', shift: '~' },
+        { code: 'KeyX', ar: 'ء', en: 'x', shift: 'ْ' },
+        { code: 'KeyC', ar: 'ؤ', en: 'c', shift: '}' },
+        { code: 'KeyV', ar: 'ر', en: 'v', shift: '{' },
+        { code: 'KeyB', ar: 'لا', en: 'b', shift: 'لآ' },
+        { code: 'KeyN', ar: 'ى', en: 'n', shift: 'آ' },
+        { code: 'KeyM', ar: 'ة', en: 'm', shift: '’' },
+        { code: 'Comma', ar: 'و', en: ',', shift: ',' },
+        { code: 'Period', ar: 'ز', en: '.', shift: '.' },
+        { code: 'Slash', ar: 'ظ', en: '/', shift: '؟' },
+        { code: 'ShiftRight', label: 'Shift ⇧', type: 'action', width: 'extra-wide', action: 'shift' }
+      ],
+      [
+        { code: 'Space', ar: ' ', label: ' ', type: 'char', width: 'spacebar' }
+      ]
+    ];
+
+    export class ArabicKeyboard extends LitElement {
+      static properties = {
+        showShiftedValue: { type: Boolean },
+        showEnglishValue: { type: Boolean },
+        _shiftActive: { state: true },
+        _capsActive: { state: true }
+      };
+
+      static styles = css`
+        :host {
+          display: block;
+          --k-bg: #ffffff;
+          --k-text: #1f2937;
+          --k-sub: #9ca3af;
+          --k-accent: #2563eb;
+          --k-board: #e5e7eb;
+          --k-shadow: #b0b0b0;
+          
+          background-color: var(--k-board);
+          padding: 10px;
+          border-radius: 12px;
+          user-select: none;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          direction: ltr;
+        }
+
+        .keyboard {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .row {
+          display: flex;
+          gap: 6px;
+          justify-content: center;
+        }
+
+        button {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background-color: var(--k-bg);
+          color: var(--k-text);
+          border: 1px solid transparent;
+          border-radius: 6px;
+          min-width: 40px;
+          height: 50px;
+          cursor: pointer;
+          box-shadow: 0 3px 0 var(--k-shadow);
+          transition: all 0.1s ease;
+          font-family: inherit;
+          -webkit-tap-highlight-color: transparent;
+          padding: 0;
+        }
+
+        button:active {
+          transform: translateY(3px);
+          box-shadow: 0 0 0 var(--k-shadow);
+        }
+
+        button.active {
+          background-color: #dbeafe;
+          border-color: var(--k-accent);
+          color: var(--k-accent);
+          transform: translateY(2px);
+          box-shadow: 0 1px 0 var(--k-shadow);
+        }
+
+        /* Responsive Key Widths */
+        .wide { flex-grow: 1; max-width: 80px; font-size: 0.9em; font-weight: bold; }
+        .extra-wide { flex-grow: 1.5; max-width: 110px; font-size: 0.9em; font-weight: bold;}
+        .spacebar { flex-grow: 5; max-width: 400px; }
+
+        /* Text elements */
+        .main { font-size: 1.25rem; font-weight: 600; line-height: 1; }
+        .en { position: absolute; top: 2px; left: 4px; font-size: 0.65rem; color: var(--k-sub); }
+        .shift { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; color: var(--k-accent); }
+
+        @media (max-width: 600px) {
+          :host { padding: 5px; }
+          .keyboard { gap: 4px; }
+          .row { gap: 3px; }
+          button { min-width: 8%; height: 45px; border-radius: 4px; }
+          .en, .shift { font-size: 0.5rem; top: 1px; }
+          .main { font-size: 1rem; }
+          .wide, .extra-wide { font-size: 0.7em; }
+        }
+      `;
+
+      constructor() {
+        super();
+        this.showShiftedValue = true;
+        this.showEnglishValue = true;
+        this._shiftActive = false;
+        this._capsActive = false;
+      }
+
+      _handleInput(key) {
+        let char = key.ar;
+        let action = null;
+
+        if (key.type === 'action') {
+          action = key.action;
+          if (action === 'shift') this._shiftActive = !this._shiftActive;
+          if (action === 'caps') this._capsActive = !this._capsActive;
+        } else {
+          // Character input logic
+          if (this._shiftActive && key.shift) {
+            char = key.shift;
+            if (!this._capsActive) this._shiftActive = false; // Release shift unless caps is on
+          }
+        }
+
+        // Dispatch event to parent DOM
+        this.dispatchEvent(new CustomEvent('kb-input', {
+          detail: { char: action ? null : char, action },
+          bubbles: true,
+          composed: true
+        }));
+      }
+
+      render() {
+        return html`
+          <div class="keyboard">
+            ${KEY_ROWS.map(row => html`
+              <div class="row">
+                ${row.map(key => this._renderKey(key))}
+              </div>
+            `)}
+          </div>
+        `;
+      }
+
+      _renderKey(key) {
+        const isAction = key.type === 'action';
+        const isActive = (key.action === 'shift' && this._shiftActive) || (key.action === 'caps' && this._capsActive);
+        
+        let display = key.ar;
+        if (isAction && key.label) display = key.label;
+        if (!isAction && this._shiftActive && key.shift) display = key.shift;
+
+        return html`
+          <button 
+            class="${key.width || ''} ${isActive ? 'active' : ''}" 
+            @click="${(e) => { e.preventDefault(); this._handleInput(key); }}"
+          >
+            <span class="main">${display}</span>
+            ${this.showEnglishValue && !isAction && key.en ? html`<span class="en">${key.en}</span>` : ''}
+            ${this.showShiftedValue && !isAction && key.shift ? html`<span class="shift">${key.shift}</span>` : ''}
+          </button>
+        `;
+      }
+    }
+
+    customElements.define('arabic-keyboard', ArabicKeyboard);
+  </script>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    const textarea = document.getElementById('screen');
+    const kb = document.getElementById('kb');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // 1. Handle Keyboard Logic
+    kb.addEventListener('kb-input', (e) => {
+      const { char, action } = e.detail;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      
+      textarea.focus();
+
+      if (action === 'delete') {
+        if (start === end && start > 0) {
+          // Delete character before cursor
+          textarea.setRangeText('', start - 1, end, 'end');
+        } else {
+          // Delete selection
+          textarea.setRangeText('', start, end, 'end');
+        }
+      } else if (action === 'enter') {
+        textarea.setRangeText('\n', start, end, 'end');
+      } else if (action === 'tab') {
+        textarea.setRangeText('\t', start, end, 'end');
+      } else if (char) {
+        // Insert Arabic character
+        textarea.setRangeText(char, start, end, 'end');
+      }
+    });
+
+    // 2. Copy Logic
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+        const original = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span>تم النسخ!</span> ✅';
+        setTimeout(() => copyBtn.innerHTML = original, 1500);
+      } catch (err) {
+        console.error('Failed to copy', err);
+        alert("Failed to copy text");
+      }
+    });
+
+    // 3. Clear Logic
+    clearBtn.addEventListener('click', () => {
+      if(textarea.value.length > 0 && confirm("Are you sure you want to clear the text?")) {
+        textarea.value = '';
+        textarea.focus();
+      }
+    });
+  </script>
+</body>
+</html>
