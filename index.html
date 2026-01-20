@@ -31,7 +31,7 @@
 
     .container {
       width: 100%;
-      max-width: 850px;
+      max-width: 900px;
       padding: 2rem 1rem;
       display: flex;
       flex-direction: column;
@@ -294,9 +294,10 @@
           padding: 0;
         }
 
-        button:active {
+        button:active, button.pressed {
           transform: translateY(3px);
           box-shadow: 0 0 0 var(--k-shadow);
+          background-color: #f3f4f6;
         }
 
         button.active {
@@ -334,6 +335,51 @@
         this.showEnglishValue = true;
         this._shiftActive = false;
         this._capsActive = false;
+        this._keyMap = new Map(); // Map physical code to key data
+        
+        // Flatten key data for O(1) lookup
+        KEY_ROWS.flat().forEach(k => {
+          if (k.code) this._keyMap.set(k.code, k);
+        });
+        
+        this._boundKeyDown = this._onPhysicalKeyDown.bind(this);
+        this._boundKeyUp = this._onPhysicalKeyUp.bind(this);
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('keydown', this._boundKeyDown);
+        window.addEventListener('keyup', this._boundKeyUp);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('keydown', this._boundKeyDown);
+        window.removeEventListener('keyup', this._boundKeyUp);
+      }
+
+      _onPhysicalKeyDown(e) {
+        // Only intercept if we are typing in the target textarea
+        const activeElement = document.activeElement;
+        if (!activeElement || activeElement.id !== 'screen') return;
+
+        // Allow browser shortcuts (Ctrl+C, Ctrl+V, F5, etc.)
+        if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+        const keyData = this._keyMap.get(e.code);
+        if (keyData) {
+          e.preventDefault(); // Stop default English character
+          this._handleInput(keyData);
+          
+          // Visual feedback
+          const btn = this.shadowRoot.querySelector(`button[data-code="${e.code}"]`);
+          if (btn) btn.classList.add('pressed');
+        }
+      }
+
+      _onPhysicalKeyUp(e) {
+        const btn = this.shadowRoot.querySelector(`button[data-code="${e.code}"]`);
+        if (btn) btn.classList.remove('pressed');
       }
 
       _handleInput(key) {
@@ -382,6 +428,7 @@
 
         return html`
           <button 
+            data-code="${key.code}"
             class="${key.width || ''} ${isActive ? 'active' : ''}" 
             @click="${(e) => { e.preventDefault(); this._handleInput(key); }}"
           >
@@ -403,7 +450,7 @@
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // 1. Handle Keyboard Logic
+    // 1. Handle Keyboard Input (From Click OR Physical Key)
     kb.addEventListener('kb-input', (e) => {
       const { char, action } = e.detail;
       const start = textarea.selectionStart;
